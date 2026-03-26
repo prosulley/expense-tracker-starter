@@ -9,12 +9,14 @@ function TransactionForm({
   category,
   setCategory,
   categories,
-  onSubmit
+  onSubmit,
+  editingId,
+  onCancelEdit
 }) {
   return (
     // Form container section
     <div className="add-transaction">
-      <h2>Add Transaction</h2>
+      <h2>{editingId ? "Edit Transaction" : "Add Transaction"}</h2>
       <form onSubmit={onSubmit}>
         {/* Description text input */}
         <input
@@ -42,7 +44,10 @@ function TransactionForm({
           ))}
         </select>
         {/* Submit button */}
-        <button type="submit">Add</button>
+        <button type="submit">{editingId ? "Update" : "Add"}</button>
+        {editingId && (
+          <button type="button" onClick={onCancelEdit}>Cancel</button>
+        )}
       </form>
     </div>
   );

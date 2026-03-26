@@ -1,3 +1,6 @@
+// React hooks and component imports
+import { useState } from 'react'
+
 // Props received from parent App component
 function TransactionList({
   transactions,
@@ -6,8 +9,16 @@ function TransactionList({
   setFilterType,
   filterCategory,
   setFilterCategory,
-  onDelete
+  onDelete,
+  onEdit
 }) {
+  // ===== DELETE CONFIRMATION STATE =====
+  // Track which transaction is pending deletion (null if no pending delete)
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
+
+  // Find the transaction being deleted for display in confirmation
+  const pendingTransaction = transactions.find(t => t.id === pendingDeleteId);
+
   // ===== FILTERING LOGIC =====
   // Start with all transactions and filter based on selected criteria
   let filteredTransactions = transactions;
@@ -17,6 +28,25 @@ function TransactionList({
   if (filterCategory !== "all") {
     filteredTransactions = filteredTransactions.filter(t => t.category === filterCategory);
   }
+
+  // ===== EVENT HANDLERS =====
+  // Show confirmation dialog for delete
+  const handleDeleteClick = (id) => {
+    setPendingDeleteId(id);
+  };
+
+  // Confirm deletion and call parent handler
+  const handleConfirmDelete = () => {
+    if (pendingDeleteId) {
+      onDelete(pendingDeleteId);
+      setPendingDeleteId(null);
+    }
+  };
+
+  // Cancel deletion and close dialog
+  const handleCancelDelete = () => {
+    setPendingDeleteId(null);
+  };
 
   return (
     // Transactions list container section
@@ -65,12 +95,27 @@ function TransactionList({
               </td>
               {/* Delete button for this transaction */}
               <td>
-                <button onClick={() => onDelete(t.id)}>Delete</button>
+                <button className="edit-btn" onClick={() => onEdit(t)}>Edit</button>
+                <button className="delete-btn" onClick={() => handleDeleteClick(t.id)}>Delete</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {/* Delete confirmation modal */}
+      {pendingDeleteId && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <p>Delete "{pendingTransaction?.description}"?</p>
+            <p>This action cannot be undone.</p>
+            <div className="modal-buttons">
+              <button onClick={handleCancelDelete}>Cancel</button>
+              <button onClick={handleConfirmDelete}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

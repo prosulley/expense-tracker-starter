@@ -26,6 +26,9 @@ function App() {
   const [type, setType] = useState("expense");
   const [category, setCategory] = useState("food");
 
+  // State for editing (null = add mode, number = edit mode with that transaction's id)
+  const [editingId, setEditingId] = useState(null);
+
   // ===== FILTER STATE =====
   // State for filtering transactions in the list
   const [filterType, setFilterType] = useState("all");
@@ -50,23 +53,51 @@ function App() {
   const balance = totalIncome - totalExpenses;
 
   // ===== EVENT HANDLERS =====
-  // Handle form submission to add new transaction
+  // Handle form submission to add or update transaction
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!description || !amount) return;
 
-    // Create new transaction object with current form values
-    const newTransaction = {
-      id: Date.now(), // Generate unique ID using timestamp
-      description,
-      amount,
-      type,
-      category,
-      date: new Date().toISOString().split('T')[0], // Format date as YYYY-MM-DD
-    };
+    if (editingId) {
+      // Update existing transaction
+      setTransactions(transactions.map(t =>
+        t.id === editingId
+          ? { ...t, description, amount, type, category }
+          : t
+      ));
+      setEditingId(null);
+    } else {
+      // Create new transaction object with current form values
+      const newTransaction = {
+        id: Date.now(), // Generate unique ID using timestamp
+        description,
+        amount,
+        type,
+        category,
+        date: new Date().toISOString().split('T')[0], // Format date as YYYY-MM-DD
+      };
+      setTransactions([...transactions, newTransaction]);
+    }
 
-    // Update transactions state and reset form
-    setTransactions([...transactions, newTransaction]);
+    // Reset form
+    setDescription("");
+    setAmount("");
+    setType("expense");
+    setCategory("food");
+  };
+
+  // Start editing a transaction
+  const handleEdit = (transaction) => {
+    setEditingId(transaction.id);
+    setDescription(transaction.description);
+    setAmount(transaction.amount);
+    setType(transaction.type);
+    setCategory(transaction.category);
+  };
+
+  // Cancel editing and reset form
+  const handleCancelEdit = () => {
+    setEditingId(null);
     setDescription("");
     setAmount("");
     setType("expense");
@@ -114,6 +145,8 @@ function App() {
         setCategory={setCategory}
         categories={categories}
         onSubmit={handleSubmit}
+        editingId={editingId}
+        onCancelEdit={handleCancelEdit}
       />
 
       {/* Transaction list component with filtering */}
@@ -125,6 +158,7 @@ function App() {
         filterCategory={filterCategory}
         setFilterCategory={setFilterCategory}
         onDelete={handleDelete}
+        onEdit={handleEdit}
       />
     </div>
   );
