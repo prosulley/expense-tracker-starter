@@ -1,7 +1,13 @@
+// React hooks and component imports
 import { useState } from 'react'
 import './App.css'
+import TransactionForm from './components/TransactionForm'
+import TransactionList from './components/TransactionList'
 
+// Main App component
 function App() {
+  // ===== TRANSACTIONS STATE =====
+  // Initial sample transactions for demonstration
   const [transactions, setTransactions] = useState([
     { id: 1, description: "Salary", amount: "5000", type: "income", category: "salary", date: "2025-01-01" },
     { id: 2, description: "Rent", amount: "1200", type: "expense", category: "housing", date: "2025-01-02" },
@@ -13,46 +19,53 @@ function App() {
     { id: 8, description: "Netflix", amount: "15", type: "expense", category: "entertainment", date: "2025-01-10" },
   ]);
 
+  // ===== FORM STATE =====
+  // State for the add transaction form fields
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [type, setType] = useState("expense");
   const [category, setCategory] = useState("food");
+
+  // ===== FILTER STATE =====
+  // State for filtering transactions in the list
   const [filterType, setFilterType] = useState("all");
   const [filterCategory, setFilterCategory] = useState("all");
 
+  // ===== CONSTANTS =====
+  // Available categories for transactions
   const categories = ["food", "housing", "utilities", "transport", "entertainment", "salary", "other"];
 
+  // ===== COMPUTED VALUES =====
+  // Calculate total income by summing all income-type transactions
   const totalIncome = transactions
     .filter(t => t.type === "income")
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
+  // Calculate total expenses by summing all expense-type transactions
   const totalExpenses = transactions
     .filter(t => t.type === "expense")
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
+  // Calculate balance (income minus expenses)
   const balance = totalIncome - totalExpenses;
 
-  let filteredTransactions = transactions;
-  if (filterType !== "all") {
-    filteredTransactions = filteredTransactions.filter(t => t.type === filterType);
-  }
-  if (filterCategory !== "all") {
-    filteredTransactions = filteredTransactions.filter(t => t.category === filterCategory);
-  }
-
+  // ===== EVENT HANDLERS =====
+  // Handle form submission to add new transaction
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!description || !amount) return;
 
+    // Create new transaction object with current form values
     const newTransaction = {
-      id: Date.now(),
+      id: Date.now(), // Generate unique ID using timestamp
       description,
       amount,
       type,
       category,
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().split('T')[0], // Format date as YYYY-MM-DD
     };
 
+    // Update transactions state and reset form
     setTransactions([...transactions, newTransaction]);
     setDescription("");
     setAmount("");
@@ -60,12 +73,20 @@ function App() {
     setCategory("food");
   };
 
+  // Handle deletion of a transaction by ID
+  const handleDelete = (id) => {
+    setTransactions(transactions.filter(t => t.id !== id));
+  };
 
+
+  // ===== RENDER =====
   return (
     <div className="app">
+      {/* Header section */}
       <h1>Finance Tracker</h1>
       <p className="subtitle">Track your income and expenses</p>
 
+      {/* Summary cards showing totals */}
       <div className="summary">
         <div className="summary-card">
           <h3>Income</h3>
@@ -81,75 +102,30 @@ function App() {
         </div>
       </div>
 
-      <div className="add-transaction">
-        <h2>Add Transaction</h2>
-        <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-          <input
-            type="number"
-            placeholder="Amount"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          />
-          <select value={type} onChange={(e) => setType(e.target.value)}>
-            <option value="income">Income</option>
-            <option value="expense">Expense</option>
-          </select>
-          <select value={category} onChange={(e) => setCategory(e.target.value)}>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-          <button type="submit">Add</button>
-        </form>
-      </div>
+      {/* Transaction form component */}
+      <TransactionForm
+        description={description}
+        setDescription={setDescription}
+        amount={amount}
+        setAmount={setAmount}
+        type={type}
+        setType={setType}
+        category={category}
+        setCategory={setCategory}
+        categories={categories}
+        onSubmit={handleSubmit}
+      />
 
-      <div className="transactions">
-        <h2>Transactions</h2>
-        <div className="filters">
-          <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-            <option value="all">All Types</option>
-            <option value="income">Income</option>
-            <option value="expense">Expense</option>
-          </select>
-          <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
-            <option value="all">All Categories</option>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-        </div>
-
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Description</th>
-              <th>Category</th>
-              <th>Amount</th>
-
-            </tr>
-          </thead>
-          <tbody>
-            {filteredTransactions.map(t => (
-              <tr key={t.id}>
-                <td>{t.date}</td>
-                <td>{t.description}</td>
-                <td>{t.category}</td>
-                <td className={t.type === "income" ? "income-amount" : "expense-amount"}>
-                  {t.type === "income" ? "+" : "-"}${t.amount}
-                </td>
-
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {/* Transaction list component with filtering */}
+      <TransactionList
+        transactions={transactions}
+        categories={categories}
+        filterType={filterType}
+        setFilterType={setFilterType}
+        filterCategory={filterCategory}
+        setFilterCategory={setFilterCategory}
+        onDelete={handleDelete}
+      />
     </div>
   );
 }

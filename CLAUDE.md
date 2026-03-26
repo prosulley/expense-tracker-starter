@@ -23,9 +23,24 @@ npm run preview  # Preview production build
 - **Routing**: None (single-page app)
 - **Backend**: None (client-side only, data persists only in memory)
 
+## Component Structure
+
+```
+src/
+  App.jsx              # Main container: holds all state, passes down via props
+  main.jsx             # React entry point
+  components/
+    TransactionForm.jsx # Add transaction form
+    TransactionList.jsx # Transactions table with filtering
+```
+
+State lives in `App.jsx` and is passed down to child components via props.
+
 ## Key Files
 
-- `src/App.jsx` — Main app component containing all state and UI logic
+- `src/App.jsx` — Main app component (state container)
+- `src/components/TransactionForm.jsx` — Transaction add form
+- `src/components/TransactionList.jsx` — Transaction list with filters
 - `src/main.jsx` — React entry point
 - `vite.config.js` — Vite configuration with React plugin
 - `eslint.config.js` — ESLint flat config with react-hooks and react-refresh rules
@@ -34,4 +49,4 @@ npm run preview  # Preview production build
 
 - This is a starter/educational project — bugs and code quality issues are expected
 - No test framework is configured
-- Transaction amounts are stored as strings, which can cause arithmetic issues (e.g., string concatenation instead of numeric addition)
+- Transaction amounts are stored as strings but converted with `Number()` for arithmetic
